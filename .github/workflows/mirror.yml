@@ -17,7 +17,7 @@ jobs:
 
       - name: Get latest release metadata
         id: latest_release
-        uses: octokit/request-action@v2
+        uses: octokit/request-action@v2.4.0
         with:
           route: GET /repos/QYCottage/BetterRenderDragon/releases/latest
         env:
@@ -39,7 +39,7 @@ jobs:
           done
 
       - name: Create release and upload checksum
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2.5.0
         with:
           tag_name: ${{ inputs.version }}
           name: Release ${{ inputs.version }}
