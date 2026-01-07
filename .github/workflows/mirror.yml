@@ -1,0 +1,49 @@
+name: Create Release with Assets
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version string for the release'
+        required: true
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get latest release metadata
+        id: latest_release
+        uses: octokit/request-action@v2
+        with:
+          route: GET /repos/QYCottage/BetterRenderDragon/releases/latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Save release metadata
+        run: |
+          echo '${{ steps.latest_release.outputs.data }}' > release.json
+
+      - name: Create checksum file
+        run: |
+          TAG=$(jq -r '.tag_name' release.json)
+
+          echo "Uploaded on $(date -u '+%Y%m%d-%H%M') (UTC)" > checksums.txt
+
+          jq -r '.assets[].name' release.json | while read asset; do
+            curl -sSL \
+              "https://github.com/QYCottage/BetterRenderDragon/releases/download/$TAG/$asset" | sha256sum | awk "{print \"$asset - \" \$1}" >> checksums.txt
+          done
+
+      - name: Create release and upload checksum
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ inputs.version }}
+          name: Release ${{ inputs.version }}
+          body: Release notes for version ${{ inputs.version }}.
+          files: checksums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
