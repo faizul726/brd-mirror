@@ -6,6 +6,7 @@ on:
       version:
         description: 'Version string for the release'
         required: true
+        default: 'v1.'
 
 jobs:
   create-release:
@@ -17,7 +18,7 @@ jobs:
 
       - name: Get latest release metadata
         id: latest_release
-        uses: octokit/request-action@v2.4.0
+        uses: octokit/request-action@v2.5.0
         with:
           route: GET /repos/QYCottage/BetterRenderDragon/releases/latest
         env:
@@ -27,23 +28,36 @@ jobs:
         run: |
           echo '${{ steps.latest_release.outputs.data }}' > release.json
 
-      - name: Create checksum file
+      - name: Download assets and generate checksums
+        id: assets
         run: |
+          mkdir assets
           TAG=$(jq -r '.tag_name' release.json)
 
-          echo "Uploaded on $(date -u '+%Y%m%d-%H%M') (UTC)" > checksums.txt
+          echo "## Checksums" > checksums.md
+          echo "" >> checksums.md
+          echo "Generated on $(date -u '+%Y-%m-%d %H:%M UTC')" >> checksums.md
+          echo "" >> checksums.md
 
           jq -r '.assets[].name' release.json | while read asset; do
-            curl -sSL \
-              "https://github.com/QYCottage/BetterRenderDragon/releases/download/$TAG/$asset" | sha256sum | awk "{print \"$asset - \" \$1}" >> checksums.txt
+            echo "Downloading $asset"
+            curl -sSL "https://github.com/QYCottage/BetterRenderDragon/releases/download/$TAG/$asset" -o "assets/$asset"
+
+            sha256=$(sha256sum "assets/$asset" | awk '{print $1}')
+            echo "- **$asset**: \`$sha256\`" >> checksums.md
           done
 
-      - name: Create release and upload checksum
-        uses: softprops/action-gh-release@v2.5.0
+          echo "CHECKSUMS<<EOF" >> $GITHUB_ENV
+          cat checksums.md >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create release and upload assets
+        uses: softprops/action-gh-release@v2.4.0
         with:
           tag_name: ${{ inputs.version }}
-          name: Release ${{ inputs.version }}
-          body: Release notes for version ${{ inputs.version }}.
-          files: checksums.txt
+          name: ${{ inputs.version }}
+          body: |
+            ${{ env.CHECKSUMS }}
+          files: assets/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
