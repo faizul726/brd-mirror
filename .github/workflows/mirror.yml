@@ -6,7 +6,7 @@ on:
       version:
         description: 'Version string for the release'
         required: true
-        default: '__v1.'
+        default: '# - v1.'
 
 jobs:
   create-release:
@@ -79,7 +79,6 @@ jobs:
           gh release create "$TAG" \
           assets/* \
           --title "$RAW_VERSION" \
-          --notes "$CHECKSUMS" \
-          --verify-tag
+          --notes "$CHECKSUMS"
 
 
