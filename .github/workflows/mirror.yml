@@ -51,13 +51,23 @@ jobs:
           cat checksums.md >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
+      #- name: Create release and upload assets
+       # uses: softprops/action-gh-release@v2.4.2
+        #with:
+         # tag_name: ${{ inputs.version }}
+          #name: ${{ inputs.version }}
+          #body: |
+           # ${{ env.CHECKSUMS }}
+          #files: assets/*
+        #env:
+         # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+         
       - name: Create release and upload assets
-        uses: softprops/action-gh-release@v2.4.2
-        with:
-          tag_name: ${{ inputs.version }}
-          name: ${{ inputs.version }}
-          body: |
-            ${{ env.CHECKSUMS }}
-          files: assets/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ inputs.version }}" \
+            assets/* \
+            --title "${{ inputs.version }}" \
+            --notes "${{ env.CHECKSUMS }}"
+
