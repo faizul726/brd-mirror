@@ -6,7 +6,7 @@ on:
       version:
         description: 'Version string for the release'
         required: true
-        default: 'v1.'
+        default: '__v1.'
 
 jobs:
   create-release:
@@ -65,9 +65,21 @@ jobs:
       - name: Create release and upload assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CHECKSUMS: ${{ env.CHECKSUMS }}
         run: |
-          gh release create "${{ inputs.version }}" \
-            assets/* \
-            --title "${{ inputs.version }}" \
-            --notes "${{ env.CHECKSUMS }}"
+          # Original input
+          RAW_VERSION="${{ inputs.version }}"       # e.g., "1 - v1.6.9"
+
+          # Replace " - " with "__" to make a valid tag
+          TAG="${RAW_VERSION/ - /__}"               # Bash string replace
+
+          echo "Creating release with tag: $TAG"
+
+          # Create release from tag (immutable-safe)
+          gh release create "$TAG" \
+          assets/* \
+          --title "$RAW_VERSION" \
+          --notes "$CHECKSUMS" \
+          --verify-tag
+
 
