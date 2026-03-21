@@ -1,12 +1,13 @@
 name: Create Release with Assets
+run-name: 'Release: ${{ inputs.VERSION }}'
 
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version string for the release'
+      VERSION:
+        description: 'Version string for the release: # = release number for BRD Manager Script (must increment +1 from the last one)'
         required: true
-        default: '# - v1.'
+        default: '# - v1.7.'
 
 jobs:
   create-release:
