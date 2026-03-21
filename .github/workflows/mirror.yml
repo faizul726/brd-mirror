@@ -29,9 +29,7 @@ jobs:
         run: |
           # echo '${{ steps.latest_release.outputs.data }}' > release.json
           # echo "${{ steps.latest_release.outputs.data }}" | jq -Rs . > release.json
-          cat <<'EOF' > release.json
-          ${{ steps.latest_release.outputs.data }}
-          EOF
+          printf '%s\n' "${{ steps.latest_release.outputs.data }}" > release.json
 
       - name: Download assets and generate checksums
         id: assets
