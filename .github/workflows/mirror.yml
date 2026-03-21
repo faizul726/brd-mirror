@@ -28,7 +28,7 @@ jobs:
       - name: Save release metadata
         run: |
           # echo '${{ steps.latest_release.outputs.data }}' > release.json
-          echo '${{ steps.latest_release.outputs.data }}' | jq -Rs . > release.json
+          echo "${{ steps.latest_release.outputs.data }}" | jq -Rs . > release.json
 
       - name: Download assets and generate checksums
         id: assets
