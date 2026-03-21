@@ -26,11 +26,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Save release metadata
+        env:
+          RELEASE_DATA: ${{ steps.latest_release.outputs.data }}
         run: |
           # echo '${{ steps.latest_release.outputs.data }}' > release.json
           # echo "${{ steps.latest_release.outputs.data }}" | jq -Rs . > release.json
-          printf '%s\n' "${{ steps.latest_release.outputs.data }}" > release.json
-
+          printf '%s' "$RELEASE_DATA" > release.json
       - name: Download assets and generate checksums
         id: assets
         run: |
